@@ -86,7 +86,7 @@ func pluginGoCode(s config.SQLGo) *plugin.GoCode {
 		EmitResultStructPointers:    s.EmitResultStructPointers,
 		EmitParamsStructPointers:    s.EmitParamsStructPointers,
 		EmitMethodsWithDbArgument:   s.EmitMethodsWithDBArgument,
-    EmitPointersForNullTypes:  s.EmitPointersForNullTypes,
+		EmitPointersForNullTypes:    s.EmitPointersForNullTypes,
 		EmitEnumValidMethod:         s.EmitEnumValidMethod,
 		EmitAllEnumValues:           s.EmitAllEnumValues,
 		JsonTagsCaseStyle:           s.JSONTagsCaseStyle,
@@ -260,6 +260,14 @@ func pluginQueryColumn(c *compiler.Column) *plugin.Column {
 			Catalog: c.Table.Catalog,
 			Schema:  c.Table.Schema,
 			Name:    c.Table.Name,
+		}
+	}
+
+	if c.EmbedTable != nil {
+		out.EmbedTable = &plugin.Identifier{
+			Catalog: c.EmbedTable.Catalog,
+			Schema:  c.EmbedTable.Schema,
+			Name:    c.EmbedTable.Name,
 		}
 	}
 

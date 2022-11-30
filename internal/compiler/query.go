@@ -29,6 +29,7 @@ type Column struct {
 	Table      *ast.TableName
 	TableAlias string
 	Type       *ast.TypeName
+	EmbedTable *ast.TableName
 
 	skipTableRequiredCheck bool
 }

@@ -160,6 +160,7 @@ message Column
   Identifier table = 10;
   string table_alias = 11;
   Identifier type = 12;
+  Identifier embed_table = 13;
 }
 
 message Query
