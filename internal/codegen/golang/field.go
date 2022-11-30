@@ -14,6 +14,9 @@ type Field struct {
 	Type    string
 	Tags    map[string]string
 	Comment string
+
+	// EmbedFields contains the embedded fields that reuqire scanning.
+	EmbedFields []string
 }
 
 func (gf Field) Tag() string {
