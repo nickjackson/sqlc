@@ -447,6 +447,9 @@ func (this *Column) EqualVT(that *Column) bool {
 	if !this.Type.EqualVT(that.Type) {
 		return false
 	}
+	if !this.EmbedTable.EqualVT(that.EmbedTable) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
