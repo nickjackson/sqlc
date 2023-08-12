@@ -13,6 +13,7 @@ import (
 	"github.com/sqlc-dev/sqlc/internal/source"
 	"github.com/sqlc-dev/sqlc/internal/sql/ast"
 	"github.com/sqlc-dev/sqlc/internal/sql/astutils"
+	"github.com/sqlc-dev/sqlc/internal/sql/catalog"
 	"github.com/sqlc-dev/sqlc/internal/sql/rewrite"
 	"github.com/sqlc-dev/sqlc/internal/sql/validate"
 )
@@ -99,6 +100,11 @@ func (c *Compiler) parseQuery(stmt ast.Node, src string, o opts.Parser) (*Query,
 	if err != nil {
 		return nil, err
 	}
+
+	if err := buildNullTables(embeds, c.catalog); err != nil {
+		return nil, err
+	}
+
 	cols, err := c.outputColumns(qc, raw.Stmt)
 	if err != nil {
 		return nil, err
@@ -180,4 +186,51 @@ func uniqueParamRefs(in []paramRef, dollar bool) []paramRef {
 		}
 	}
 	return o
+}
+
+// buildNullTables adds additional tables to the catalog for nullable embeds
+func buildNullTables(embeds rewrite.EmbedSet, c *catalog.Catalog) error {
+	for _, emb := range embeds {
+		if !emb.Nullable {
+			continue
+		}
+
+		schema, table, err := c.GetSchemaTable(emb.Table)
+		if err != nil {
+			return err
+		}
+
+		emb.Table = &ast.TableName{
+			Catalog: table.Rel.Catalog,
+			Schema:  table.Rel.Schema,
+			Name:    "null_" + table.Rel.Name,
+		}
+
+		// skip if null table already exists
+		if table, _ := c.GetTable(emb.Table); table.Rel != nil {
+			continue
+		}
+
+		nullTable := &catalog.Table{
+			Rel:     emb.Table,
+			Columns: []*catalog.Column{},
+		}
+
+		for _, c := range table.Columns {
+			nullTable.Columns = append(nullTable.Columns, &catalog.Column{
+				Name:       c.Name,
+				Type:       c.Type,
+				IsNotNull:  false,
+				IsUnsigned: c.IsUnsigned,
+				IsArray:    c.IsArray,
+				ArrayDims:  c.ArrayDims,
+				Comment:    c.Comment,
+				Length:     c.Length,
+			})
+		}
+
+		schema.Tables = append(schema.Tables, nullTable)
+	}
+
+	return nil
 }

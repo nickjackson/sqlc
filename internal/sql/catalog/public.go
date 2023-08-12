@@ -131,3 +131,12 @@ func (c *Catalog) GetTable(rel *ast.TableName) (Table, error) {
 		return *table, err
 	}
 }
+
+func (c *Catalog) GetSchemaTable(rel *ast.TableName) (*Schema, *Table, error) {
+	schema, table, err := c.getTable(rel)
+	if table == nil {
+		return nil, nil, err
+	} else {
+		return schema, table, err
+	}
+}
